@@ -50,6 +50,23 @@ pub async fn main(req: Request, env: Env, _ctx: worker::Context) -> Result<Respo
             let version = ctx.var("WORKERS_RS_VERSION")?.to_string();
             Response::ok(version)
         })
+        .get("/global-ip", |req, ctx| {
+            // let connecting_ip = match req.headers_mut().unwrap().get("CF-Connecting-IP") {
+            //     Some(connecting_ip) => connecting_ip,
+            //     None => "Failed to fetch source IP.",
+            // };
+            let connecting_ip = match req.headers().get("CF-Connecting-IP") {
+                Ok(value) => {
+                    match value {
+                        Some(connecting_ip) => connecting_ip,
+                        None => "Failed to fetch source IP.".to_string(),
+                    }
+                },
+                Err(_) => "Failed to fetch source IP.".to_string(),
+            };
+
+            Response::from_json(&json!({ "globalIP": connecting_ip }))
+        })
         .run(req, env)
         .await
 }
